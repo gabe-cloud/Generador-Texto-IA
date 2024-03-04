@@ -3,6 +3,7 @@
 #%pip install matplotlib
 #%pip install nltk
 #%pip install tensorflow
+#%pip install customtkinter
 
 import random
 import pickle
@@ -18,6 +19,10 @@ from numpy import load
 import pandas as pd
 import matplotlib.pyplot as plt
 from nltk.tokenize import RegexpTokenizer
+from tkinter import *
+import customtkinter as ctk
+import sys
+from PIL import ImageTk, Image
 
 import tensorflow as tf
 from keras.models import Sequential, load_model
@@ -26,7 +31,7 @@ from keras.optimizers import RMSprop
 
 import os
 
-
+ctk.set_appearance_mode("dark")
 
 n_words = 10
 
@@ -92,7 +97,7 @@ def Train_new_model():
     save ('data/unique_tokens', unique_tokens)
     save ('data/unique_token_index', unique_token_index)
 
-def Train_current_model (model_name, text): #Funcion para seguir entrenando el modelo com mas textos, hasta ahora no esta completo
+def Train_current_model (model_name, text): #Funcion para seguir entrenando el modelo com más textos.
 
     partial_text = text
 
@@ -149,18 +154,86 @@ def generate_text(input_text, n_words, creativity=3): #Genera un texto
 
 #read_text()
 #Train_new_model()
+menuOne = ["100", "200", "300", "400", "500"]
+menuTwo = ["1", "2", "3", "4", "5"]
+# Create the main window
+root = ctk.CTk()
+root.geometry('400x500')
+root.title("Generador de Texto")
+root.resizable(False, False)
+root.iconbitmap("logo.ico")
 
-term = input("Escribe 1 para entrenar el modelo, 2 para generar un texto de ejemplo: ")
+def show_popup():
+    popup = ctk.CTkToplevel(root)
+    popup.geometry("400x500")
+    popup.resizable(False, False)
+    popup.title("Generador de Texto")
+    popup.iconbitmap("logo.ico")
 
-match term:
-    case "1":
-        Train_new_model()
-    case "2":
-        term1 = input("Escribe el numero de palabras que desee generar ")
-        term2 = input("Escribe la creatividad del generador ")
-        term1 = int(term1)  # parse string into an integer
-        term2 = int(term2)  # parse string into an integer
-        print (generate_text("Jose ha anunciado que", term1, term2))
-    case _:
-        print ("not valid")
+    labelOne = ctk.CTkLabel(popup, text="Ingrese el número de palabras que desea generar:")
+    labelOne.pack(padx=30, pady=30)
+    optionOne = ctk.CTkComboBox(popup, values=menuOne)
+    optionOne.pack(padx=30, pady=10)
 
+    labelTwo = ctk.CTkLabel(popup, text="Ingrese nivel de creatividad que desea:")
+    labelTwo.pack(padx=30, pady=30)
+    optionTwo = ctk.CTkComboBox(popup, values=menuTwo)
+    optionTwo.pack(padx=30, pady=10)
+
+    optionOne.get() 
+    optionTwo.get() 
+
+    generarTexto = ctk.CTkButton(popup, text="Generar Texto", command=lambda: generacion_texto(optionOne.get(), optionTwo.get(), popup))
+    generarTexto.pack(padx=30, pady=30)
+
+    popup.grab_set()
+    popup.wait_window()
+    popup.grab_release()
+
+
+def generacion_texto(term1, term2, toplevel):
+    new_popup = ctk.CTkToplevel(root)
+    new_popup.geometry("400x500")
+    new_popup.resizable(False, False)
+    new_popup.title("Generador de Texto")
+    new_popup.iconbitmap("logo.ico")
+
+    scroll_frame = ctk.CTkScrollableFrame(new_popup, orientation="horizontal")
+    scroll_frame.pack(padx=30, pady=30, ipadx=50, ipady=50)
+
+
+    text_label = ctk.CTkLabel(scroll_frame, text="Texto generado:")
+    text_label.pack(padx=10, pady=10)
+
+    term1_int = int(term1)
+    term2_int = int(term2)
+    texto_generado = generate_text("Se anuncia que", term1_int, term2_int)
+    text_label.configure(text=texto_generado)
+
+    toplevel.destroy()
+
+    new_popup.grab_set()
+    new_popup.wait_window()
+    new_popup.grab_release()
+
+def salir():
+    sys.exit()
+
+
+# Create the button frame
+
+button_frame = ctk.CTkFrame(master=root)
+button_frame.pack(fill="both", expand=True)
+
+# Create the buttons and pack them within the frame
+firstButton = ctk.CTkButton(master=button_frame, text="Entrenar Modelo", command=Train_new_model)
+firstButton.pack(padx=30, pady=50)
+
+secondButton = ctk.CTkButton(master=button_frame, text="Generar texto", command=show_popup)
+secondButton.pack(padx=30, pady=30)
+
+ThirdButton = ctk.CTkButton(master=button_frame, text="Salir", command=salir)
+ThirdButton.pack(padx=30, pady=30)
+
+# Run the main loop
+root.mainloop()
